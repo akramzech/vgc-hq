@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Income</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#070707">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Income">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070707; --card:#17181A; --line:#2A2B2F; --ink:#FFFFFF; --mute:#9B9CA4; --track:#26272B;
+  --g1:#5AA0FF; --g2:#7B3FFF; --g3:#D048FF; --neg:#FF6B5E;
+  --grad:linear-gradient(90deg,var(--g1),var(--g2) 50%,var(--g3));
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.4 Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom));
+}
+.wrap{max-width:480px;margin:0 auto;overflow-x:hidden}
+button{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 0 16px}
+.brand{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+h1{margin:4px 0 0;font-size:24px;line-height:1.08;font-weight:800;letter-spacing:-.01em;text-transform:uppercase}
+.herohead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.herohead .part{margin-top:8px}
+.avatar{width:92px;height:92px;flex:none;border-radius:50%;object-fit:cover;display:block;
+  border:3px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box, var(--grad) border-box}
+.upd{font-size:12px;color:var(--mute);margin-top:6px}
+button.refresh{
+  appearance:none;cursor:pointer;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  border:1.5px solid transparent;border-radius:999px;padding:12px 16px;min-height:44px;flex:none;
+  background:linear-gradient(var(--bg),var(--bg)) padding-box, var(--grad) border-box;
+}
+button.refresh:active{background:linear-gradient(#1c1530,#1c1530) padding-box, var(--grad) border-box}
+button.refresh[disabled]{opacity:.55}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:999px;margin-bottom:14px}
+.tabs button{appearance:none;border:1.5px solid transparent;background:transparent;color:var(--mute);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;min-height:44px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);background:linear-gradient(#1c1b2b,#1c1b2b) padding-box, var(--grad) border-box}
+
+.banner{border-radius:18px;padding:14px 16px;margin-bottom:12px;font-size:13.5px}
+.banner.err{background:#2a1513;border:1px solid #5a2a24;color:#ffd9d3}
+.banner.dev{background:#1b1a10;border:1px solid #4a4420;color:#f0e6a8}
+.banner b{display:block;margin-bottom:2px}
+.banner button{margin-top:10px;appearance:none;cursor:pointer;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid currentColor;background:transparent;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+
+.datenav{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-bottom:12px}
+.nb{min-height:56px;border-radius:18px;background:var(--card);border:1px solid var(--line);font-size:24px;font-weight:700;cursor:pointer}
+.nb[disabled]{opacity:.3;cursor:default}
+.datepick{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 10px;text-align:center}
+.datepick .dl{font-weight:800;font-size:15px}
+.datepick input,.datepick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer;border:0}
+.chip{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 9px;border-radius:99px;background:var(--grad);color:#fff}
+.jump{display:block;width:100%;min-height:44px;margin:-2px 0 12px;appearance:none;cursor:pointer;background:transparent;border:1px dashed var(--line);border-radius:14px;color:var(--mute);font-size:13px;font-weight:700}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:20px;margin-bottom:12px}
+.k{font-size:11px;font-weight:700;color:var(--mute);letter-spacing:.1em;text-transform:uppercase}
+.hero{border:1.5px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box, var(--grad) border-box}
+.hero .big{display:inline-block;font-size:38px;line-height:1.1;font-weight:800;letter-spacing:-.025em;margin:8px 0 6px}
+.hero .big.neg{background:none;color:var(--neg);-webkit-text-fill-color:var(--neg)}
+.part{font-size:12px;color:var(--mute);display:block}
+.part:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g3);margin-right:7px;vertical-align:1px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.pair b{display:block;font-size:18px;font-weight:800;margin-top:4px}
+.pair b.stat{font-size:14px;line-height:1.3}
+.meta{font-size:12.5px;color:var(--mute);margin-top:12px}
+
+.sh{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.sh + .kv{border-top:0}
+.kv span{color:var(--mute)}
+.kv b{font-weight:800;text-align:right}
+.kv b.neg,.tile b.neg{color:var(--neg)}
+.note{font-size:12px;color:var(--mute);margin:8px 0 0}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;min-width:0}
+.tile b{display:block;font-size:19px;font-weight:800;margin-top:6px;letter-spacing:-.01em}
+.tile.wide{grid-column:1/-1}
+.tile.wide b{font-size:14px;font-weight:700;color:var(--mute)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 4px 10px}
+.sec h2{margin:0;font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.sec span{font-size:12.5px;color:var(--mute)}
+
+.chart-cap{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}
+.chart-cap b{font-size:20px;font-weight:800;display:block;margin-top:4px}
+.link{appearance:none;cursor:pointer;background:transparent;border:0;min-height:44px;padding:0 4px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--g1)}
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.bar-rect{fill:url(#barGrad);opacity:.6}
+.bar-rect.sel{opacity:1}
+.bar-rect.neg{fill:var(--neg)}
+.avg{stroke:var(--mute);stroke-width:1;stroke-dasharray:3 3}
+.avg-t{fill:var(--mute);font-size:9px}
+.axis{stroke:var(--line);stroke-width:1}
+.tick{fill:var(--mute);font-size:9px}
+.hit{cursor:pointer}
+
+button.row{display:flex;width:100%;text-align:left;justify-content:space-between;align-items:center;gap:12px;min-height:64px;padding:12px 18px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:22px;cursor:pointer}
+button.row:active{background:#1e1f22}
+button.row .d{font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+button.row .s{font-size:12px;color:var(--mute);margin-top:2px}
+button.row .p{font-weight:800;font-size:17px;text-align:right;white-space:nowrap}
+button.row .p.neg{color:var(--neg)}
+button.row .p i{font-style:normal;color:var(--mute);margin-left:8px;font-weight:600}
+
+details.info{margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:22px}
+details.info summary{list-style:none;cursor:pointer;padding:15px 18px;font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+details.info summary::-webkit-details-marker{display:none}
+details.info .body{padding:0 18px 16px;font-size:13px;color:var(--mute)}
+details.info .body p{margin:0 0 10px}
+details.info .body b{color:var(--ink)}
+
+body.locked .refresh, body.locked .tabs{display:none}
+.lockcard{margin-top:12px}
+.lt{font-size:22px;font-weight:800;margin:6px 0 14px}
+.lockcard input{width:100%;min-height:54px;border-radius:16px;border:1px solid var(--line);background:#0f1012;color:var(--ink);font-size:20px;letter-spacing:.3em;text-align:center;padding:0 14px}
+.lockcard input:focus{outline:2px solid var(--g2);outline-offset:1px}
+.lockerr{color:var(--neg);font-size:13px;margin:10px 0 0}
+button.unlock{margin-top:14px;width:100%;min-height:54px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(var(--card),var(--card)) padding-box, var(--grad) border-box}
+button.unlock[disabled]{opacity:.6}
+.foot-link{appearance:none;background:transparent;border:0;cursor:pointer;color:var(--mute);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;min-height:44px;padding:0 10px}
+.empty{color:var(--mute);text-align:center;padding:28px 8px}
+footer{margin-top:22px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+footer a{text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">VGC · HQ</div>
+      <h1>Income Product Digital</h1>
+      <div class="upd" id="upd">&nbsp;</div>
+    </div>
+    <button class="refresh" id="refresh" type="button">Reload</button>
+  </header>
+  <div id="banners"></div>
+  <nav class="tabs" role="tablist" aria-label="Paparan">
+    <button type="button" role="tab" data-act="tab" data-v="harian" id="tab-harian">Harian</button>
+    <button type="button" role="tab" data-act="tab" data-v="bulanan" id="tab-bulanan">Bulanan</button>
+  </nav>
+  <main id="app"><div class="empty">Memuat data dari sheet…</div></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= tetapan & nama Melayu ================= */
+const TZ = 'Asia/Kuala_Lumpur';
+const MONTHS = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const MON    = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+const DAYS   = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+const DAYS_S = ['Ahd','Isn','Sel','Rab','Kha','Jum','Sab'];
+const METRICS = ['order_hq','sales_hq','ads_hq','komisen','profit_hq_personal','order_fighter','sales_fighter','profit_fighter_60','total_profit_hq','roas_hq_ads','sales_gabungan'];
+const CACHE_KEY = 'vgc-hq-cache-v2';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxN3hgYCsBPrz95wKycEiteY8MZHLxXQ02OnHRkSmb9vBwlVoQbAZwAKbdIj22dawqwfQ/exec';
+const LIVE = true;
+
+/* ================= format ================= */
+const AVATAR_IMG = '<img class="avatar" alt="Akram" src="avatar.jpg">';
+const esc  = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt2 = n => Math.abs(n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const RM   = n => n == null ? '—' : ((n < 0 && Math.abs(n) >= 0.005) ? '-' : '') + 'RM' + fmt2(n);
+const INT  = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
+const ROAS = n => n == null ? '—' : n.toFixed(2) + '×';
+const neg  = n => (n != null && n <= -0.005) ? ' neg' : '';
+
+/* ================= tarikh (tanpa anjakan zon waktu) ================= */
+const parseISO = s => { const p = s.split('-'); return {y:+p[0], m:+p[1], d:+p[2]}; };
+const dow      = s => { const p = parseISO(s); return new Date(Date.UTC(p.y, p.m-1, p.d)).getUTCDay(); };
+const labelLong  = s => { const p = parseISO(s); return DAYS[dow(s)] + ', ' + p.d + ' ' + MON[p.m-1] + ' ' + p.y; };
+const labelShort = s => { const p = parseISO(s); return DAYS_S[dow(s)] + ' ' + p.d + ' ' + MON[p.m-1]; };
+const monthLabel = k => { const p = k.split('-'); return MONTHS[+p[1]-1] + ' ' + p[0]; };
+const todayKL    = () => new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+function readTime(iso){
+  const d = new Date(iso); if (isNaN(d)) return '—';
+  const o = {}; new Intl.DateTimeFormat('en-GB',{timeZone:TZ,day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true})
+    .formatToParts(d).forEach(p => o[p.type] = p.value);
+  const ds = d.toLocaleDateString('en-CA',{timeZone:TZ});
+  const when = ds === todayKL() ? 'hari ini' : o.day + ' ' + MON[+o.month-1];
+  return when + ', ' + o.hour + ':' + o.minute + ' ' + String(o.dayPeriod || '').toUpperCase();
+}
+
+/* ================= logik data ================= */
+const sum = (rows,k) => { let s = 0, any = false; rows.forEach(r => { if (r[k] != null) { s += r[k]; any = true; } }); return any ? s : null; };
+function hasRecord(r){
+  const st = String(r.status_harian || '').trim().toLowerCase();
+  if (st.indexOf('belum diisi') === 0) return false;
+  return METRICS.some(k => r[k] != null) || r.hq_lengkap === true || st !== '';
+}
+const isPartial = r => !(r.hq_lengkap === true && r.bil_fighter_lengkap === 2);
+
+/* ================= state ================= */
+const S = {data:null, rows:[], by:{}, latest:null, view:'harian', date:null, month:null, chartSel:null, err:null, loading:false, locked:false, lockMsg:''};
+const PIN_KEY = 'vgc-hq-pin-v1';
+const readPin   = () => { try { return localStorage.getItem(PIN_KEY) || ''; } catch (e) { return ''; } };
+const writePin  = p => { try { localStorage.setItem(PIN_KEY, p); } catch (e) {} };
+const clearPin  = () => { try { localStorage.removeItem(PIN_KEY); localStorage.removeItem(CACHE_KEY); } catch (e) {} };
+let PIN = '';
+const monthsAvail = () => { const m = []; S.rows.forEach(r => { const k = r.tarikh.slice(0,7); if (m.indexOf(k) < 0) m.push(k); }); return m; };
+
+function setData(d){
+  S.data = d;
+  S.rows = (d.rows || []).filter(r => /^\d{4}-\d{2}-\d{2}$/.test(r.tarikh)).sort((a,b) => a.tarikh < b.tarikh ? -1 : a.tarikh > b.tarikh ? 1 : 0);
+  S.by = {}; S.rows.forEach(r => S.by[r.tarikh] = r);
+  const rec = S.rows.filter(hasRecord);
+  S.latest = rec.length ? rec[rec.length-1].tarikh : (S.rows.length ? S.rows[0].tarikh : null);
+  if (!S.date || !S.by[S.date]) S.date = S.latest;
+  const ms = monthsAvail();
+  if (!S.month || ms.indexOf(S.month) < 0) S.month = S.date ? S.date.slice(0,7) : (ms[0] || null);
+  S.chartSel = null;
+}
+
+/* ================= komponen ================= */
+const kv = (label, value, cls) => '<div class="kv"><span>' + esc(label) + '</span><b class="num' + (cls||'') + '">' + value + '</b></div>';
+const tile = (label, value, cls) => '<div class="tile"><div class="k">' + esc(label) + '</div><b class="num' + (cls||'') + '">' + value + '</b></div>';
+
+const INFO = '<details class="info"><summary>Maksud angka</summary><div class="body">'
+ + '<p><b>Sales HQ</b> ialah sales BCL untuk HQ Ads/direct, affiliate, Threads dan LTO. <b>Order HQ</b> ialah jumlah order empat saluran itu. <b>Ads HQ</b> ialah belanja iklan HQ, dan <b>Komisen</b> ialah komisen affiliate HQ.</p>'
+ + '<p><b>Profit HQ personal</b> ialah profit empat saluran HQ selepas ads HQ dan komisen affiliate. Caj gateway, refund dan kos lain belum ditolak.</p>'
+ + '<p><b>Fighter</b> ialah jumlah Amsyar dan Aqmal. <b>Profit fighter 60%</b> ialah bahagian profit fighter yang sudah diperuntukkan kepada HQ.</p>'
+ + '<p><b>Total profit HQ</b> = profit HQ personal + bahagian HQ daripada fighter. <b>Sales gabungan</b> = sales HQ + sales fighter. Kedua-dua diambil terus daripada sheet.</p>'
+ + '<p><b>ROAS HQ Ads</b> = sales HQ Ads/direct sahaja ÷ ads HQ. ROAS bulanan tidak dipaparkan sebab feed tiada lajur sales direct berasingan.</p>'
+ + '<p><b>Setakat rekod tersedia</b> bermaksud sebahagian data belum lengkap, jadi jumlah mungkin masih berubah.</p>'
+ + '</div></details>';
+
+/* ---------- paparan Harian ---------- */
+function viewHarian(){
+  const r = S.by[S.date];
+  if (!r) return '<div class="empty">Tiada data untuk dipaparkan.</div>';
+  const i = S.rows.findIndex(x => x.tarikh === r.tarikh);
+  const prev = S.rows[i-1], next = S.rows[i+1];
+  const rec = hasRecord(r), partial = rec && isPartial(r);
+  const first = S.rows[0].tarikh, last = S.rows[S.rows.length-1].tarikh;
+  let h = '';
+
+  h += '<div class="datenav">'
+     + '<button class="nb" type="button" data-act="prev" aria-label="Hari sebelum"' + (prev ? '' : ' disabled') + '>‹</button>'
+     + '<label class="datepick"><span class="dl">' + esc(labelLong(r.tarikh)) + '</span>'
+     + (r.tarikh === todayKL() ? '<span class="chip">Hari ini</span>' : '')
+     + '<input type="date" id="datein" value="' + r.tarikh + '" min="' + first + '" max="' + last + '" aria-label="Pilih tarikh"></label>'
+     + '<button class="nb" type="button" data-act="next" aria-label="Hari seterusnya"' + (next ? '' : ' disabled') + '>›</button>'
+     + '</div>';
+  if (S.latest && r.tarikh !== S.latest) {
+    h += '<button class="jump" type="button" data-act="latest">Ke rekod terbaru · ' + esc(labelShort(S.latest)) + '</button>';
+  }
+
+  h += '<section class="card hero">'
+     + '<div class="herohead"><div><div class="k">Total profit HQ</div>' + (partial ? '<span class="part">Setakat rekod tersedia</span>' : '') + '</div>' + AVATAR_IMG + '</div>'
+     + '<div class="big num ' + (r.total_profit_hq != null && r.total_profit_hq <= -0.005 ? 'neg' : 'gt') + '">' + RM(r.total_profit_hq) + '</div>'
+     + '<div class="pair">'
+     +   '<div><div class="k">Sales gabungan</div><b class="num">' + RM(r.sales_gabungan) + '</b></div>'
+     +   '<div><div class="k">Status harian</div><b class="stat">' + esc(r.status_harian || '—') + '</b></div>'
+     + '</div></section>';
+
+  h += '<section class="card"><h3 class="sh">HQ</h3>'
+     + kv('Sales HQ', RM(r.sales_hq), neg(r.sales_hq))
+     + kv('Order HQ', INT(r.order_hq))
+     + kv('Ads HQ', RM(r.ads_hq))
+     + kv('Komisen affiliate', RM(r.komisen))
+     + kv('Profit HQ personal', RM(r.profit_hq_personal), neg(r.profit_hq_personal))
+     + kv('ROAS HQ Ads', ROAS(r.roas_hq_ads))
+     + '<p class="note">Profit selepas ads dan komisen. Caj gateway, refund dan kos lain belum ditolak.</p>'
+     + '</section>';
+
+  h += '<section class="card"><h3 class="sh">Fighter</h3>'
+     + kv('Sales fighter', RM(r.sales_fighter), neg(r.sales_fighter))
+     + kv('Order fighter', INT(r.order_fighter))
+     + kv('Profit fighter 60% (bahagian HQ)', RM(r.profit_fighter_60), neg(r.profit_fighter_60))
+     + kv('Fighter lengkap', r.bil_fighter_lengkap == null ? '—' : r.bil_fighter_lengkap + ' / 2')
+     + '<p class="note">Jumlah Amsyar dan Aqmal.</p>'
+     + '</section>';
+
+  return h + INFO;
+}
+
+/* ---------- carta bulanan ---------- */
+function chartSVG(rows, selDate){
+  const n = rows.length, W = 340, H = 150, padL = 4, padR = 4, padT = 8, padB = 18;
+  const vals = rows.map(r => r.total_profit_hq).filter(v => v != null);
+  const max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0]));
+  const span = (max - min) || 1, plotH = H - padT - padB;
+  const y = v => padT + (max - v) / span * plotH;
+  const bw = (W - padL - padR) / Math.max(n,1), zero = y(0);
+  let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Total profit HQ harian">'
+        + '<defs><linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D048FF"/><stop offset=".5" stop-color="#7B3FFF"/><stop offset="1" stop-color="#5AA0FF"/></linearGradient></defs>'
+        + '<line class="axis" x1="' + padL + '" x2="' + (W-padR) + '" y1="' + zero + '" y2="' + zero + '"/>';
+  rows.forEach((r,i) => {
+    const bx = padL + i*bw + bw*0.14, w = bw*0.72, v = r.total_profit_hq;
+    if (v != null) {
+      const top = Math.min(y(v), zero), h = Math.max(1.5, Math.abs(y(v)-zero));
+      o += '<rect class="bar-rect' + (r.tarikh === selDate ? ' sel' : '') + (v < 0 ? ' neg' : '') + '" x="' + bx.toFixed(2) + '" y="' + top.toFixed(2) + '" width="' + w.toFixed(2) + '" height="' + h.toFixed(2) + '" rx="2"/>';
+    }
+    o += '<rect class="hit" data-act="bar" data-date="' + r.tarikh + '" x="' + (padL+i*bw).toFixed(2) + '" y="0" width="' + bw.toFixed(2) + '" height="' + H + '" fill="transparent"/>';
+  });
+  const avg = vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
+  if (avg != null) {
+    o += '<line class="avg" x1="' + padL + '" x2="' + (W-padR) + '" y1="' + y(avg) + '" y2="' + y(avg) + '"/>'
+       + '<text class="avg-t" x="' + (W-padR) + '" y="' + (y(avg)-3) + '" text-anchor="end">purata ' + esc(RM(avg).replace(/\.\d\d$/,'')) + '</text>';
+  }
+  [0, Math.floor(n/2), n-1].forEach(i => {
+    if (i < 0 || i >= n) return;
+    o += '<text class="tick" x="' + (padL+i*bw+bw/2) + '" y="' + (H-4) + '" text-anchor="' + (i===0 ? 'start' : i===n-1 ? 'end' : 'middle') + '">' + parseISO(rows[i].tarikh).d + '</text>';
+  });
+  return o + '</svg>';
+}
+function monthRows(){ return S.rows.filter(r => r.tarikh.slice(0,7) === S.month); }
+function chartBlock(){
+  const rows = monthRows();
+  const withVal = rows.filter(r => r.total_profit_hq != null);
+  const sel = S.chartSel && S.by[S.chartSel] && S.by[S.chartSel].total_profit_hq != null ? S.chartSel : (withVal.length ? withVal[withVal.length-1].tarikh : null);
+  const r = sel ? S.by[sel] : null;
+  return '<div class="chart-cap"><div><div class="k">Total profit HQ harian</div><b class="num' + neg(r && r.total_profit_hq) + '">' + (r ? RM(r.total_profit_hq) : '—') + '</b></div>'
+       + (r ? '<div style="text-align:right"><div class="k">' + esc(labelShort(r.tarikh)) + '</div><button class="link" type="button" data-act="open" data-date="' + r.tarikh + '">Buka hari ›</button></div>' : '')
+       + '</div>' + chartSVG(rows, sel);
+}
+
+/* ---------- paparan Bulanan ---------- */
+function viewBulanan(){
+  const ms = monthsAvail();
+  if (!S.month) return '<div class="empty">Tiada data untuk dipaparkan.</div>';
+  const mi = ms.indexOf(S.month);
+  const rows = monthRows();
+  const recs = rows.filter(hasRecord);
+  const lengkap = rows.filter(r => r.hq_lengkap === true).length;
+  const partialAny = recs.some(isPartial) || recs.length < rows.length;
+  const T = k => sum(recs, k);
+  const tp = T('total_profit_hq');
+  let h = '';
+
+  h += '<div class="datenav">'
+     + '<button class="nb" type="button" data-act="mprev" aria-label="Bulan sebelum"' + (mi > 0 ? '' : ' disabled') + '>‹</button>'
+     + '<label class="datepick"><span class="dl">' + esc(monthLabel(S.month)) + '</span>'
+     + '<select id="monthsel" aria-label="Pilih bulan">' + ms.map(m => '<option value="' + m + '"' + (m === S.month ? ' selected' : '') + '>' + esc(monthLabel(m)) + '</option>').join('') + '</select></label>'
+     + '<button class="nb" type="button" data-act="mnext" aria-label="Bulan seterusnya"' + (mi < ms.length-1 ? '' : ' disabled') + '>›</button>'
+     + '</div>';
+
+  h += '<section class="card hero">'
+     + '<div class="herohead"><div><div class="k">Total profit HQ · ' + esc(monthLabel(S.month)) + '</div>' + (partialAny && recs.length ? '<span class="part">Setakat rekod tersedia</span>' : '') + '</div>' + AVATAR_IMG + '</div>'
+     + '<div class="big num ' + (tp != null && tp <= -0.005 ? 'neg' : 'gt') + '">' + RM(tp) + '</div>'
+     + '<div class="pair">'
+     +   '<div><div class="k">Sales gabungan</div><b class="num">' + RM(T('sales_gabungan')) + '</b></div>'
+     +   '<div><div class="k">Hari HQ lengkap</div><b class="num">' + lengkap + ' hari</b></div>'
+     + '</div>'
+     + '<div class="meta">' + recs.length + ' daripada ' + rows.length + ' hari berekod</div>'
+     + '</section>';
+
+  h += '<section class="grid">'
+     + tile('Sales HQ', RM(T('sales_hq')), neg(T('sales_hq')))
+     + tile('Ads HQ', RM(T('ads_hq')))
+     + tile('Komisen', RM(T('komisen')))
+     + tile('Profit HQ personal', RM(T('profit_hq_personal')), neg(T('profit_hq_personal')))
+     + tile('Order HQ', INT(T('order_hq')))
+     + tile('Profit fighter 60%', RM(T('profit_fighter_60')), neg(T('profit_fighter_60')))
+     + tile('Sales fighter', RM(T('sales_fighter')), neg(T('sales_fighter')))
+     + tile('Order fighter', INT(T('order_fighter')))
+     + '<div class="tile wide"><div class="k">ROAS HQ Ads</div><b>ROAS bulanan tidak tersedia</b></div>'
+     + '</section>';
+
+  h += '<section class="card" id="chartCard">' + chartBlock() + '</section>';
+
+  h += '<div class="sec"><h2>Senarai hari</h2><span>' + recs.length + ' hari</span></div>';
+  if (!recs.length) h += '<div class="empty">Belum ada rekod bulan ini.</div>';
+  recs.slice().reverse().forEach(r => {
+    h += '<button class="row" type="button" data-act="open" data-date="' + r.tarikh + '">'
+       + '<div><div class="d">' + esc(labelShort(r.tarikh)) + '</div><div class="s">' + esc(r.status_harian || '—') + '</div></div>'
+       + '<div class="p num' + neg(r.total_profit_hq) + '">' + RM(r.total_profit_hq) + '<i>›</i></div></button>';
+  });
+  if (rows.length > recs.length) h += '<p class="note" style="text-align:center">' + (rows.length - recs.length) + ' hari lagi belum diisi.</p>';
+  return h + INFO;
+}
+
+/* ================= render ================= */
+function renderLock(){
+  document.getElementById('banners').innerHTML = '';
+  document.getElementById('upd').textContent = ' ';
+  document.getElementById('foot').innerHTML = '';
+  document.getElementById('app').innerHTML = '<form id="pinform" class="card lockcard" autocomplete="off">'
+    + '<div class="k">Akses dilindungi</div><div class="lt">Masukkan PIN</div>'
+    + '<input id="pinin" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="PIN" aria-label="PIN">'
+    + (S.lockMsg ? '<p class="lockerr">' + esc(S.lockMsg) + '</p>' : '')
+    + '<button class="unlock" type="submit"' + (S.loading ? ' disabled' : '') + '>' + (S.loading ? 'Memeriksa…' : 'Buka') + '</button></form>';
+}
+function render(){
+  document.body.classList.toggle('locked', S.locked);
+  if (S.locked) { renderLock(); return; }
+  const app = document.getElementById('app');
+  document.getElementById('tab-harian').setAttribute('aria-selected', S.view === 'harian');
+  document.getElementById('tab-bulanan').setAttribute('aria-selected', S.view === 'bulanan');
+
+  const upd = document.getElementById('upd');
+  const last = S.data ? 'Data dibaca: ' + readTime(S.data.readAt) : '';
+  upd.textContent = S.loading ? ('Memuat semula…' + (last ? ' · ' + last : '')) : (last || ' ');
+
+  let b = '';
+  if (S.err) b += '<div class="banner err"><b>Tak dapat baca sheet.</b>' + esc(S.err) + (S.data ? '<br>Data di bawah ialah bacaan terakhir yang berjaya.' : '') + '<br><button type="button" data-act="retry">Cuba lagi</button></div>';
+  document.getElementById('banners').innerHTML = b;
+
+  if (!S.data) { app.innerHTML = S.err ? '' : '<div class="empty">Memuat data dari sheet…</div>'; document.getElementById('foot').innerHTML = ''; return; }
+  if (!S.rows.length) { app.innerHTML = '<div class="empty">Tab App Feed tiada baris dengan tarikh sebenar.</div>'; return; }
+  app.innerHTML = S.view === 'harian' ? viewHarian() : viewBulanan();
+  document.getElementById('foot').innerHTML = (S.data.sheetUrl ? '<a class="gt" href="' + esc(S.data.sheetUrl) + '" target="_top" rel="noopener">Buka sheet</a>' : '')
+    + (LIVE ? '<button class="foot-link" type="button" data-act="lock">Kunci</button>' : '');
+}
+
+/* ================= interaksi ================= */
+function go(date, view){
+  if (!S.by[date]) return;
+  S.date = date; S.month = date.slice(0,7); if (view) S.view = view; render();
+}
+function act(a, el){
+  const i = S.date ? S.rows.findIndex(r => r.tarikh === S.date) : -1;
+  const ms = monthsAvail(), mi = ms.indexOf(S.month);
+  switch (a) {
+    case 'tab':    S.view = el.dataset.v; if (S.view === 'bulanan' && S.date) S.month = S.date.slice(0,7); render(); break;
+    case 'prev':   if (S.rows[i-1]) go(S.rows[i-1].tarikh); break;
+    case 'next':   if (S.rows[i+1]) go(S.rows[i+1].tarikh); break;
+    case 'latest': go(S.latest); break;
+    case 'mprev':  if (mi > 0) { S.month = ms[mi-1]; S.chartSel = null; render(); } break;
+    case 'mnext':  if (mi < ms.length-1) { S.month = ms[mi+1]; S.chartSel = null; render(); } break;
+    case 'open':   go(el.dataset.date, 'harian'); window.scrollTo(0,0); break;
+    case 'bar':    if (S.by[el.dataset.date] && S.by[el.dataset.date].total_profit_hq != null) { S.chartSel = el.dataset.date; const c = document.getElementById('chartCard'); if (c) c.innerHTML = chartBlock(); } break;
+    case 'retry':  refresh(); break;
+    case 'lock':   PIN = ''; clearPin(); S.data = null; S.rows = []; S.by = {}; S.date = null; S.month = null; S.err = null; S.lockMsg = ''; S.locked = true; render(); break;
+  }
+}
+document.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (t) act(t.dataset.act, t); });
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'pinform') return;
+  e.preventDefault();
+  const v = (document.getElementById('pinin').value || '').trim();
+  if (v) refresh(v);
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'datein' && S.by[e.target.value]) go(e.target.value);
+  if (e.target.id === 'monthsel') { S.month = e.target.value; S.chartSel = null; render(); }
+});
+
+/* ================= muat data ================= */
+const FETCH_TIMEOUT_MS = 40000;
+async function fetchT(url, opts){
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), FETCH_TIMEOUT_MS);
+  try { return await fetch(url, Object.assign({}, opts, {signal: ctl.signal, redirect: 'follow'})); } finally { clearTimeout(timer); }
+}
+async function load(pin){
+  const p = String(pin == null ? '' : pin);
+  let res;
+  try {
+    // POST teks biasa: PIN dalam badan, bukan URL, dan tiada preflight CORS
+    res = await fetchT(API_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({pin: p})});
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error('Server lambat menjawab. Cuba lagi.');
+    try {   // jalan balik: GET (sesetengah pelayar gagal POST + redirect)
+      res = await fetchT(API_URL + '?action=data&pin=' + encodeURIComponent(p), {});
+    } catch (e2) {
+      throw new Error(e2 && e2.name === 'AbortError' ? 'Server lambat menjawab. Cuba lagi.' : 'Tak dapat hubungi server. Semak sambungan internet.');
+    }
+  }
+  let j;
+  try { j = await res.json(); } catch (e) { throw new Error('Jawapan server tak sah (' + res.status + ').'); }
+  if (!j || j.ok !== true) throw new Error((j && j.error) || 'Ralat tak diketahui dari server.');
+  return j.data;
+}
+const readCache  = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; } };
+const writeCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {} };
+
+const btn = document.getElementById('refresh');
+let lastLoad = 0;
+function refresh(pinTry){
+  const pin = (typeof pinTry === 'string') ? pinTry : PIN;
+  S.loading = true; S.err = null; S.lockMsg = ''; btn.disabled = true; btn.textContent = 'Loading…'; render();
+  return load(pin).then(d => {
+    setData(d); S.err = null; S.locked = false; PIN = pin; lastLoad = Date.now(); writeCache(d);
+    if (LIVE) writePin(pin);
+  }).catch(e => {
+    const m = (e && e.message) || String(e);
+    if (LIVE && /PIN/.test(m)) {          // PIN salah / disekat / belum ditetapkan
+      S.locked = true; S.lockMsg = m.replace(/^(Error|Exception):\s*/, ''); PIN = ''; clearPin();
+      S.data = null; S.rows = []; S.by = {};
+    } else {
+      S.err = m;                                  // data terakhir yang BETUL kekal; tiada data rekaan
+    }
+  }).then(() => {
+    S.loading = false; btn.disabled = false; btn.textContent = 'Reload'; render();
+  });
+}
+btn.addEventListener('click', refresh);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !S.locked && Date.now() - lastLoad > 60000) refresh(); });
+
+PIN = LIVE ? readPin() : '';
+if (LIVE && !PIN) {
+  S.locked = true; render();                          // belum ada PIN: minta dulu, jangan muat data
+} else {
+  const cached = LIVE ? readCache() : null;   // cache hanya untuk data live (selepas PIN pernah betul)
+  if (cached && cached.rows) setData(cached);
+  render();
+  refresh();
+}
+})();
+</script>
+</body>
+</html>
