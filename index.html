@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Income">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192-v2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -184,7 +184,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxN3hgYCsBPrz95wKycEite
 const LIVE = true;
 
 /* ================= format ================= */
-const AVATAR_IMG = '<img class="avatar" alt="Akram" src="avatar.jpg">';
+const AVATAR_IMG = '<img class="avatar" alt="Akram" src="avatar-2.jpg">';
 const esc  = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt2 = n => Math.abs(n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 const RM   = n => n == null ? '—' : ((n < 0 && Math.abs(n) >= 0.005) ? '-' : '') + 'RM' + fmt2(n);
