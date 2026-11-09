@@ -396,7 +396,7 @@ function renderLock(){
   document.getElementById('foot').innerHTML = '';
   document.getElementById('app').innerHTML = '<form id="pinform" class="card lockcard" autocomplete="off">'
     + '<div class="k">Akses dilindungi</div><div class="lt">Masukkan PIN</div>'
-    + '<input id="pinin" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="PIN" aria-label="PIN">'
+    + '<input id="pinin" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="32" placeholder="PIN" aria-label="PIN">'
     + (S.lockMsg ? '<p class="lockerr">' + esc(S.lockMsg) + '</p>' : '')
     + '<button class="unlock" type="submit"' + (S.loading ? ' disabled' : '') + '>' + (S.loading ? 'Memeriksa…' : 'Buka') + '</button></form>';
 }
