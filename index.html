@@ -182,6 +182,34 @@ footer a{text-decoration:none}
 .idea ol{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--mute)}
 .pending{border:1px dashed var(--line);border-radius:18px;padding:14px;font-size:13px;color:var(--mute)}
 .wksel{position:relative}
+.muted{color:var(--mute)}
+.jumps{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px;scrollbar-width:none}
+.jumps::-webkit-scrollbar{display:none}
+.jumps button{flex:none;appearance:none;cursor:pointer;min-height:40px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mute);font-weight:700;font-size:13px}
+.todo ol{margin:10px 0 4px;padding:0;list-style:none;counter-reset:t}
+.todo li{counter-increment:t;display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:11px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.45}
+.todo li:first-child{border-top:0}
+.todo li:before{content:counter(t);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:linear-gradient(#1c1b2b,#1c1b2b) padding-box,var(--grad) border-box;border:1.5px solid transparent}
+.line{font-size:13px;color:var(--mute);margin-top:8px;line-height:1.5}
+.line b{color:var(--ink)}
+details.wsec{background:var(--card);border:1px solid var(--line);border-radius:24px;margin-bottom:12px;scroll-margin-top:12px}
+details.wsec>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;min-height:58px}
+details.wsec>summary::-webkit-details-marker{display:none}
+details.wsec .n{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:#0f1012;border:1px solid var(--line);color:var(--mute)}
+details.wsec .t{font-weight:800;font-size:15.5px;flex:1}
+details.wsec .s{font-size:12px;color:var(--mute);white-space:nowrap}
+details.wsec .chev{color:var(--mute);font-size:20px;line-height:1;transition:transform .15s}
+details.wsec[open] .chev{transform:rotate(90deg)}
+.wbody{padding:0 18px 16px}
+.vd{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.vd.ok{color:#7FE0A8;border-color:#2c4a39}.vd.bad{color:var(--neg);border-color:#5a2a24}.vd.mute{opacity:.75}
+.callout{background:#0f1012;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px;font-size:13.5px;color:var(--mute);line-height:1.45}
+.callout b{color:var(--ink)}
+.callout.tip{border-style:dashed}
+a.src{color:var(--g1);text-decoration:none;font-size:12px;font-weight:700}
+details.proof>summary{list-style:none;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--g1);padding-top:10px;min-height:32px}
+details.proof>summary::-webkit-details-marker{display:none}
+.rowh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700}
 </style>
 </head>
 <body>
@@ -481,105 +509,121 @@ const kindTag = k => { const u = String(k || '').toUpperCase(); return u === 'FA
 const PENDING_AI = '<div class="pending">Ulasan minggu ni belum dijana. Bahagian ni ditulis AI di atas angka yang dah dikira (Fasa 4–5). Angka di page ni semua dikira kod.</div>';
 const WARN_TXT = {cplpv_naik: 'Cost per LPV naik 3 hari berturut-turut', frekuensi_tinggi: 'Frekuensi tinggi'};
 
+const VERDICT = {'Scale': ['ok', 'Kuat'], 'Watch': ['', 'Perhati'], 'Cut candidate': ['bad', 'Calon cut'], 'Belum cukup data': ['mute', 'Sampel kecil']};
+const verdict = s => { const v = VERDICT[s] || ['', s]; return '<span class="vd ' + v[0] + '">' + esc(v[1]) + '</span>'; };
+const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+const srcLink = s => !s ? '' : (/^https?:\/\//.test(s) ? '<a class="src" href="' + esc(s) + '" target="_blank" rel="noopener">' + esc(host(s)) + ' ↗</a>' : '<span class="src muted">' + esc(s) + '</span>');
+const wsec = (id, num, title, sub, body, open) => '<details class="wsec" id="' + id + '"' + (open ? ' open' : '') + '><summary><span class="n">' + num + '</span><span class="t">' + esc(title) + '</span>'
+  + (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '<span class="chev">›</span></summary><div class="wbody">' + body + '</div></details>';
+const pctChange = (cur, prev, betterUp) => {
+  if (cur == null || prev == null || prev === 0) return '';
+  const ch = (cur - prev) / Math.abs(prev); if (Math.abs(ch) < 0.005) return ' <span class="delta">sama</span>';
+  return ' <span class="delta ' + ((betterUp ? ch > 0 : ch < 0) ? 'up' : 'dn') + '">' + (ch > 0 ? '▲' : '▼') + Math.abs(ch * 100).toFixed(0) + '%</span>';
+};
+
 function viewAngle(){
   if (WA.err && !WA.data) return '<div class="banner err"><b>Tak dapat baca Winning Angle.</b>' + esc(WA.err) + '<br><button type="button" data-act="waretry">Cuba lagi</button></div>';
   if (!WA.data) return '<div class="empty">Mengira angle minggu ni…</div>';
   const d = WA.data, w = d.meta.week, n = d.narrative || {}, T = d.totals, today = todayKL();
-  const nextFrom = addDays(w.from, 7), canNext = addDays(nextFrom, 6) < today;
+  const canNext = addDays(addDays(w.from, 7), 6) < today;
+  const dn = n.duplicateNotes || {};
   let h = '';
   if (WA.err) h += '<div class="banner err"><b>Gagal muat semula.</b>' + esc(WA.err) + '</div>';
 
   h += '<div class="datenav">'
      + '<button class="nb" type="button" data-act="wprev" aria-label="Minggu sebelum">‹</button>'
-     + '<div class="datepick"><span class="dl">' + esc(rangeLabel(w.from, w.to)) + '</span>' + (d.narrative ? '<span class="chip">Arkib</span>' : '') + '</div>'
+     + '<div class="datepick"><span class="dl">' + esc(rangeLabel(w.from, w.to)) + '</span><span class="k" style="font-size:10px">Isnin – Ahad</span></div>'
      + '<button class="nb" type="button" data-act="wnext" aria-label="Minggu seterusnya"' + (canNext ? '' : ' disabled') + '>›</button>'
      + '</div>';
 
-  // Ringkasan minggu
-  h += '<section class="card hero"><div class="k">Ads minggu ni · Meta claimed</div>'
-     + '<div class="wk"><b class="num gt">' + ROAS(T.cur.roas) + ' ROAS</b>' + deltaTag(T.cur.roas, T.prev.roas, true, ROAS) + '</div>'
-     + '<div class="mini">' + mini('Spend', RM0(T.cur.spend)) + mini('Purchase', INT(T.cur.purchases)) + mini('CPP', RM(T.cur.cpp)) + '</div>'
-     + '<div class="mini">' + mini('Cost/LPV', RM(T.cur.costPerLpv)) + mini('LPV→Beli', PCT(T.cur.lpvToPurchase)) + mini('Hook', PCT(T.cur.hookRate)) + '</div>'
-     + '<div class="meta">CPP ' + deltaTag(T.cur.cpp, T.prev.cpp, false, RM).replace('<span class="delta', '<span class="delta') + '</div>'
-     + '</section>';
+  // Kad tindakan: apa nak buat minggu ni
+  const todo = [];
+  if (d.duplicate[0]) todo.push('Duplicate <b>' + esc(d.duplicate[0].concept) + '</b>, ubah <b>' + esc(d.duplicate[0].change.variable) + '</b> je.');
+  if (n.shoot && n.shoot[0]) todo.push('Shoot idea baru: <b>' + esc(n.shoot[0].title) + '</b>.');
+  if (d.cut[0]) todo.push('Semak <b>' + esc(d.cut[0].concept) + '</b>. ROAS ' + ROAS(d.cut[0].roas) + ', calon cut.');
+  else if (d.warnings[0]) todo.push('Perhati <b>' + esc(d.warnings[0].name) + '</b>. ' + esc(WARN_TXT[d.warnings[0].type] || '') + '.');
+  if (!todo.length) todo.push('Tiada tindakan segera. Biar iklan jalan.');
+  h += '<section class="card hero todo"><div class="k">Minggu ni, buat ' + todo.length + ' benda ni</div><ol>' + todo.map(t => '<li><span>' + t + '</span></li>').join('') + '</ol>'
+     + '<div class="line">Pulangan <b class="num">' + ROAS(T.cur.roas) + '</b>' + pctChange(T.cur.roas, T.prev.roas, true)
+     + ' · <b class="num">' + INT(T.cur.purchases) + '</b> jualan · Kos/jualan <b class="num">' + RM(T.cur.cpp) + '</b>' + pctChange(T.cur.cpp, T.prev.cpp, false) + '</div>'
+     + '<div class="line" style="font-size:11.5px">Banding minggu sebelumnya. Angka Meta (claimed), dikira kod.</div></section>';
+
+  h += '<nav class="jumps" aria-label="Seksyen">'
+     + [['wa-angle', 'Angle'], ['wa-dup', 'Duplicate'], ['wa-shoot', 'Shoot'], ['wa-why', 'Kenapa'], ['wa-watch', 'Watch/Cut']]
+       .map(x => '<button type="button" data-act="wajump" data-id="' + x[0] + '">' + x[1] + '</button>').join('') + '</nav>';
 
   // 1. Top 3
-  h += '<div class="sec"><h2>1 · Top 3 winning angle</h2><span>ikut ROAS</span></div><section class="card">';
-  if (!d.top.length) h += '<div class="empty">Belum ada angle yang cukup data minggu ni.</div>';
+  let b = '';
+  if (!d.top.length) b += '<div class="empty">Belum ada angle yang cukup data.</div>';
   d.top.forEach(t => {
-    h += '<div class="ang"><div class="ah"><div class="rk">' + t.rank + '</div><div>'
-       + '<h4>' + esc(t.concept) + '</h4>'
-       + '<div class="sub">' + (t.status === 'Scale' ? '<span class="tag v">Scale</span>' : '<span class="tag">' + esc(t.status) + '</span>')
-       + (t.creativeAgeDays != null ? 'Umur creative ' + t.creativeAgeDays + ' hari' : '') + '</div></div></div>'
-       + '<div class="mini">' + mini('ROAS', ROAS(t.roas)) + mini('CPP', RM(t.cpp)) + mini('Purchase', INT(t.purchases)) + '</div>'
-       + '<div class="mini">' + mini('Hook', PCT(t.hookRate)) + mini('Hold', PCT(t.holdRate)) + mini('LPV→Beli', PCT(t.lpvToPurchase)) + '</div>'
-       + '<div class="why">Minggu lepas: ' + (t.prevRoas == null ? 'belum jalan' : '<b>' + ROAS(t.prevRoas) + '</b> · ' + INT(t.prevPurchases) + ' purchase') + '</div>'
+    b += '<div class="ang"><div class="ah"><div class="rk">' + t.rank + '</div><div><h4>' + esc(t.concept) + '</h4>'
+       + '<div class="sub">' + verdict(t.status) + (t.creativeAgeDays != null ? ' <span class="muted">· ' + t.creativeAgeDays + ' hari jalan</span>' : '') + '</div></div></div>'
+       + '<div class="mini">' + mini('Pulangan', ROAS(t.roas)) + mini('Kos/jualan', RM(t.cpp)) + mini('Jualan', INT(t.purchases)) + '</div>'
+       + '<div class="line">Minggu sebelum: ' + (t.prevRoas == null ? 'belum jalan' : '<b>' + ROAS(t.prevRoas) + '</b>, ' + INT(t.prevPurchases) + ' jualan') + '</div>'
+       + '<details class="proof"><summary>Lihat bukti video ›</summary><div class="mini">' + mini('Berhenti scroll', PCT(t.hookRate)) + mini('Tonton habis', PCT(t.holdRate)) + mini('Lawat→beli', PCT(t.lpvToPurchase)) + '</div></details>'
        + '</div>';
   });
-  h += '</section>';
+  h += wsec('wa-angle', 1, 'Angle paling menang', 'top 3', b, true);
 
-  // 2. Kenapa menang + gap market (AI)
-  h += '<div class="sec"><h2>2 · Kenapa menang & gap market</h2></div><section class="card">';
-  if (n.why && n.why.length) {
-    n.why.forEach(x => { h += '<div class="li">' + kindTag(x.kind) + esc(x.text) + (x.source ? '<div class="sub">Sumber: ' + esc(x.source) + '</div>' : '') + '</div>'; });
-    (n.gaps || []).forEach(x => { h += '<div class="li"><span class="tag v">Gap</span>' + kindTag(x.kind) + esc(x.text) + (x.source ? '<div class="sub">Sumber: ' + esc(x.source) + '</div>' : '') + '</div>'; });
-  } else h += PENDING_AI;
-  h += '</section>';
-
-  // 3. DUPLICATE
-  const dn = n.duplicateNotes || {};
-  h += '<div class="sec"><h2>3 · Duplicate</h2><span>ubah SATU benda je</span></div><section class="card">';
-  if (!d.duplicate.length) h += '<div class="empty">Tiada ad yang layak duplicate minggu ni.</div>';
+  // 2. Duplicate
+  b = '';
+  if (!d.duplicate.length) b += '<div class="empty">Tiada ad yang layak duplicate minggu ni.</div>';
   d.duplicate.forEach(a => {
-    h += '<div class="dup"><div class="dh">' + (a.thumbnailUrl ? '<img class="thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="' + esc(a.thumbnailUrl) + '" onerror="this.style.visibility=\'hidden\'">' : '<div class="thumb"></div>')
-       + '<div><h4>' + esc(a.adName || a.concept) + '</h4>'
-       + '<div class="sub" style="font-size:12px;color:var(--mute)">' + esc(a.campaign) + '</div></div></div>'
-       + '<div class="mini">' + mini('ROAS', ROAS(a.roas)) + mini('CPP', RM(a.cpp)) + mini('Purchase', INT(a.purchases)) + '</div>'
-       + '<p class="why"><span class="tag v">Ubah: ' + esc(a.change.variable) + '</span>' + esc(a.change.reason) + '</p>'
-       + (dn[a.adId] ? '<p class="why">' + esc(dn[a.adId]) + '</p>' : '')
+    b += '<div class="dup"><div class="dh">' + (a.thumbnailUrl ? '<img class="thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="' + esc(a.thumbnailUrl) + '" onerror="this.style.visibility=\'hidden\'">' : '<div class="thumb"></div>')
+       + '<div><h4>' + esc(a.concept) + '</h4><div class="line" style="margin-top:2px">' + ROAS(a.roas) + ' · ' + RM(a.cpp) + '/jualan · ' + INT(a.purchases) + ' jualan</div></div></div>'
+       + '<div class="callout">Ubah satu benda je: <b>' + esc(a.change.variable) + '</b><br>' + esc(a.change.reason) + '</div>'
+       + (dn[a.adId] ? '<div class="callout tip">' + esc(dn[a.adId]) + '</div>' : '')
        + '</div>';
   });
-  h += '</section>';
+  h += wsec('wa-dup', 2, 'Duplicate', d.duplicate.length + ' ad', b, true);
 
-  // 4. SHOOT brief (AI)
-  h += '<div class="sec"><h2>4 · Shoot brief</h2><span>3 idea baru</span></div><section class="card">';
+  // 3. Shoot
+  b = '';
   if (n.shoot && n.shoot.length) {
-    n.shoot.forEach((s, i) => {
-      h += '<div class="idea"><h4>' + (i+1) + '. ' + esc(s.title) + '</h4>'
-         + '<p><b>Hook:</b> “' + esc(s.hook) + '”</p>'
-         + (s.shots && s.shots.length ? '<ol>' + s.shots.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>' : '')
-         + '<p><b>Durasi:</b> ' + esc(s.duration || '—') + ' · <b>CTA:</b> ' + esc(s.cta || '—') + '</p>'
-         + (s.basedOn ? '<p>Berdasarkan: ' + esc(s.basedOn) + '</p>' : '') + '</div>';
+    n.shoot.forEach((x, i) => {
+      b += '<div class="idea"><h4>' + (i + 1) + '. ' + esc(x.title) + '</h4>'
+         + '<div class="callout">Hook: <b>“' + esc(x.hook) + '”</b></div>'
+         + (x.shots && x.shots.length ? '<ol>' + x.shots.map(y => '<li>' + esc(y) + '</li>').join('') + '</ol>' : '')
+         + '<p><b>' + esc(x.duration || '—') + '</b> · CTA: ' + esc(x.cta || '—') + '</p>'
+         + (x.basedOn ? '<p class="muted">Kenapa idea ni: ' + esc(x.basedOn) + '</p>' : '') + '</div>';
     });
-  } else h += PENDING_AI;
-  h += '</section>';
+  } else b += PENDING_AI;
+  h += wsec('wa-shoot', 3, 'Idea shoot baru', n.shoot ? n.shoot.length + ' idea' : '', b, true);
 
-  // 5. WATCH / CUT
-  h += '<div class="sec"><h2>5 · Watch / Cut</h2><span>cadangan je, tak sentuh Meta</span></div><section class="card">';
-  d.cut.forEach(c => { h += '<div class="li"><span class="tag w">Cut candidate</span>' + esc(c.concept) + '<div class="sub">' + RM0(c.spend) + ' · ' + INT(c.purchases) + ' purchase · ROAS ' + ROAS(c.roas) + ' · ' + c.daysWithData + ' hari data</div></div>'; });
-  d.watch.forEach(c => { h += '<div class="li"><span class="tag">Watch</span>' + esc(c.concept) + '<div class="sub">' + RM0(c.spend) + ' · ' + INT(c.purchases) + ' purchase · ROAS ' + ROAS(c.roas) + ' · CPP ' + RM(c.cpp) + '</div></div>'; });
-  d.small.forEach(c => { h += '<div class="li"><span class="tag">Sampel kecil</span>' + esc(c.concept)
-     + (c.flags.indexOf('spend_tinggi_purchase_rendah') >= 0 ? ' <span class="tag w">Spend tinggi</span>' : '')
-     + '<div class="sub">' + RM0(c.spend) + ' · ' + esc(c.note) + '</div></div>'; });
-  if (!d.cut.length && !d.watch.length && !d.small.length) h += '<div class="empty">Tiada.</div>';
-  h += '</section>';
+  // 4. Kenapa menang + gap (AI)
+  b = '';
+  if (n.why && n.why.length) {
+    b += '<div class="k" style="margin-bottom:4px">Kenapa menang</div>';
+    n.why.forEach(x => { b += '<div class="li">' + kindTag(x.kind) + esc(x.text) + '<div class="sub">' + srcLink(x.source) + '</div></div>'; });
+    if (n.gaps && n.gaps.length) {
+      b += '<div class="k" style="margin:14px 0 4px">Peluang yang kompetitor belum ambil</div>';
+      n.gaps.forEach(x => { b += '<div class="li">' + kindTag(x.kind) + esc(x.text) + '<div class="sub">' + srcLink(x.source) + '</div></div>'; });
+    }
+  } else b += PENDING_AI;
+  h += wsec('wa-why', 4, 'Kenapa menang & peluang', 'analisis', b, false);
 
-  // 6. Amaran
-  h += '<div class="sec"><h2>6 · Amaran trend</h2></div><section class="card">';
-  if (!d.warnings.length) h += '<div class="empty">Tiada amaran minggu ni.</div>';
+  // 5. Watch / Cut + amaran
+  b = '';
+  const row = (c, extra) => '<div class="li"><div class="rowh"><span>' + esc(c.concept) + '</span>' + extra + '</div><div class="sub">' + RM0(c.spend) + ' belanja · ' + INT(c.purchases) + ' jualan · pulangan ' + ROAS(c.roas) + '</div></div>';
   d.warnings.forEach(x => {
     const tail = x.series ? x.series.slice(-4).map(s => s.value == null ? '—' : 'RM' + s.value.toFixed(2)).join(' → ') : (x.value != null ? x.value.toFixed(2) : '');
-    h += '<div class="li"><span class="tag w">' + esc(WARN_TXT[x.type] || x.type) + '</span>' + esc(x.name) + '<div class="sub num">' + esc(tail) + '</div></div>';
+    b += '<div class="li"><div class="rowh"><span>' + esc(x.name) + '</span><span class="vd bad">Amaran</span></div><div class="sub">' + esc(WARN_TXT[x.type] || x.type) + ': ' + esc(tail) + '</div></div>';
   });
-  h += '</section>';
+  d.cut.forEach(c => { b += row(c, verdict('Cut candidate')); });
+  d.watch.forEach(c => { b += row(c, verdict('Watch')); });
+  if (d.small.length) {
+    b += '<div class="k" style="margin:14px 0 4px">Sampel kecil, jangan nilai lagi</div>';
+    d.small.forEach(c => { b += '<div class="li"><div class="rowh"><span>' + esc(c.concept) + '</span>' + (c.flags.indexOf('spend_tinggi_purchase_rendah') >= 0 ? '<span class="vd bad">Spend tinggi</span>' : '') + '</div><div class="sub">' + RM0(c.spend) + ' · ' + INT(c.purchases) + ' jualan</div></div>'; });
+  }
+  if (!b) b = '<div class="empty">Tiada.</div>';
+  h += wsec('wa-watch', 5, 'Watch, cut & amaran', (d.cut.length ? d.cut.length + ' calon cut · ' : '') + (d.warnings.length ? d.warnings.length + ' amaran' : d.watch.length + ' perhati'), b, d.cut.length > 0 || d.warnings.length > 0);
 
   h += '<details class="info"><summary>Cara kira</summary><div class="body">'
-     + '<p><b>Semua angka dikira kod</b> dari data Meta (Windsor → sheet VGC Ads Auto). AI hanya tulis ulasan di bahagian 2 dan 4.</p>'
-     + '<p><b>Status:</b> Belum cukup data = spend bawah RM' + d.meta.rules.insufficient.minSpend + ' atau purchase bawah ' + d.meta.rules.insufficient.minPurchases
-     + '. Scale = ROAS ≥ ' + d.meta.rules.scale.minRoas + ' dan ≥ ' + d.meta.rules.scale.minPurchases + ' purchase. Cut candidate = spend ≥ RM' + d.meta.rules.cut.minSpend
-     + ', ROAS bawah ' + d.meta.rules.cut.maxRoas + ' dan ≥ ' + d.meta.rules.cut.minDays + ' hari data.</p>'
-     + '<p><b>Hook</b> = 3-second plays ÷ impressions. <b>Hold</b> = ThruPlay ÷ 3-second plays. <b>LPV→Beli</b> = purchase ÷ landing page view.</p>'
-     + '<p><b>Pembolehubah duplicate</b> dipilih ikut metrik ad yang paling lemah berbanding median akaun: hook → hook line, hold → format, CTR/LPV→beli → CTA, semua kuat → persona.</p>'
+     + '<p><b>Semua angka dikira kod</b> dari data Meta (Windsor → sheet VGC Ads Auto). AI cuma tulis ulasan di seksyen 3 dan 4, dan setiap dakwaan ada label Fakta/Hipotesis.</p>'
+     + '<p><b>Kuat</b> = pulangan ≥ ' + d.meta.rules.scale.minRoas + '× dan ≥ ' + d.meta.rules.scale.minPurchases + ' jualan. <b>Calon cut</b> = belanja ≥ RM' + d.meta.rules.cut.minSpend
+     + ', pulangan bawah ' + d.meta.rules.cut.maxRoas + '× dan ≥ ' + d.meta.rules.cut.minDays + ' hari data. <b>Sampel kecil</b> = belanja bawah RM' + d.meta.rules.insufficient.minSpend + ' atau bawah ' + d.meta.rules.insufficient.minPurchases + ' jualan.</p>'
+     + '<p><b>Berhenti scroll</b> = 3-second plays ÷ impressions. <b>Tonton habis</b> = ThruPlay ÷ 3-second plays. <b>Lawat→beli</b> = jualan ÷ landing page view.</p>'
+     + '<p><b>Benda yang diubah bila duplicate</b> dipilih ikut metrik paling lemah berbanding median akaun: berhenti scroll → hook line, tonton habis → format, klik/beli → CTA, semua kuat → persona.</p>'
      + (d.meta.notes || []).map(x => '<p>' + esc(x) + '</p>').join('')
      + '</div></details>';
   return h;
@@ -648,6 +692,7 @@ function act(a, el){
     case 'wprev':  if (WA.data && !WA.loading) loadWinning(addDays(WA.data.meta.week.from, -7)); break;
     case 'wnext':  if (WA.data && !WA.loading) loadWinning(addDays(WA.data.meta.week.from, 7)); break;
     case 'waretry': loadWinning(WA.week); break;
+    case 'wajump': { const t = document.getElementById(el.dataset.id); if (t) { t.open = true; t.scrollIntoView({behavior: 'smooth', block: 'start'}); } break; }
     case 'prev':   if (S.rows[i-1]) go(S.rows[i-1].tarikh); break;
     case 'next':   if (S.rows[i+1]) go(S.rows[i+1].tarikh); break;
     case 'latest': go(S.latest); break;
